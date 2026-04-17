@@ -7,6 +7,7 @@ import Backtester from './components/Backtest/Backtester';
 import TradeHistory from './components/History/TradeHistory';
 import Settings from './components/Settings/Settings';
 import { useBinanceLive } from './hooks/useBinanceLive';
+import { useCOG } from './hooks/useCOG';
 import { useSettings } from './hooks/useSettings';
 import { assets } from './constants/assets';
 import { intervals } from './constants/intervals';
@@ -18,8 +19,17 @@ const App = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { settings } = useSettings();
 
-  // Primary data hook
+  // Primary data hooks
   const marketData = useBinanceLive(currentAsset.symbol, interval.value);
+  const cogData = useCOG(marketData.candles, settings.cogPeriod);
+
+  const indicatorStates = [
+    { name: 'RSI DIV', on: cogData.rsiDivergence !== 'NONE' },
+    { name: 'EMA TREND', on: Math.abs(cogData.ema50 - cogData.ema200) > 0.01 },
+    { name: 'PATT', on: !!cogData.candlestickPattern },
+    { name: 'VOL', on: true },
+    { name: 'MACD', on: cogData.macdSignalType !== 'WAIT' }
+  ];
 
   // Handle asset/interval changes
   const handleAssetChange = (asset) => {
@@ -46,6 +56,7 @@ const App = () => {
         isOpen={isSidebarOpen} 
         toggle={() => setIsSidebarOpen(!isSidebarOpen)}
         marketData={marketData}
+        indicators={indicatorStates}
       />
 
       {/* Main Content Area */}

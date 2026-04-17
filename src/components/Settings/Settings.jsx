@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import GlassCard from '../UI/GlassCard';
 import { Toggle } from '../UI/Badge';
 import { useSettings } from '../../hooks/useSettings';
+import { useLocalAI } from '../../hooks/useLocalAI';
 import { models } from '../../constants/models';
 import { Key, Settings as SettingsIcon, ShieldCheck, Database, Sliders } from 'lucide-react';
 

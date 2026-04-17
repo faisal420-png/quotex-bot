@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { PulseDot } from '../UI/Badge';
 
-const Sidebar = ({ activeTab, setActiveTab, isOpen, toggle, marketData }) => {
+const Sidebar = ({ activeTab, setActiveTab, isOpen, toggle, marketData, indicators }) => {
   const menuItems = [
     { id: 'signals', name: 'Signal Generator', icon: Zap },
     { id: 'backtest', name: 'AI Backtester', icon: Activity },
@@ -61,6 +61,21 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, toggle, marketData }) => {
             );
           })}
         </nav>
+
+        {/* Indicator Confluence Section */}
+        {isOpen && indicators && (
+          <div className="px-6 py-4 mt-4">
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4 block">Indicator Confluence</span>
+            <div className="grid grid-cols-1 gap-2">
+              {indicators.map((ind) => (
+                <div key={ind.name} className="flex items-center justify-between group cursor-default">
+                  <span className="text-[10px] font-bold text-gray-400 group-hover:text-gray-200 transition-colors">{ind.name}</span>
+                  <div className={`w-1.5 h-1.5 rounded-full ${ind.on ? 'bg-teal-glow shadow-glow' : 'bg-gray-800'}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Footer / Status */}
         <div className="p-4 bg-gray-900/40 border-t border-gray-800">

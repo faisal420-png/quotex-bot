@@ -106,7 +106,7 @@ const SignalGenerator = ({ marketData, asset, interval }) => {
           </div>
           <div className="bg-gray-900/50 px-4 py-2 border border-gray-800 rounded-xl flex flex-col items-end min-w-[100px]">
              <span className="text-[10px] font-black text-gray-500 uppercase leading-none mb-1">Expiry</span>
-             <span className="text-sm font-bold text-teal-glow leading-none uppercase tracking-widest italic">5 Min</span>
+             <span className="text-sm font-bold text-teal-glow leading-none uppercase tracking-widest italic">{interval.label.toUpperCase()}</span>
           </div>
         </div>
       </div>
@@ -155,7 +155,7 @@ const SignalGenerator = ({ marketData, asset, interval }) => {
                     </h2>
                     
                     <div className="flex flex-col items-center gap-2 mt-4">
-                       <span className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Expiry: 2 Candles</span>
+                       <span className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Expiry: {interval.label.toUpperCase()} · 2 Candles</span>
                        <div className="flex items-center gap-2">
                           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{asset.name} OTC</span>
                           <div className="w-1 h-1 rounded-full bg-gray-700" />
