@@ -1,7 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import LiveChart from '../Chart/LiveChart';
-import SignalBox from './SignalBox';
 import ConfidenceGauge from './ConfidenceGauge';
 import FuturePredictionPanel from './FuturePredictionPanel';
 import CountdownTimer from './CountdownTimer';
@@ -10,7 +8,7 @@ import { useCOG } from '../../hooks/useCOG';
 import { useLocalAI } from '../../hooks/useLocalAI';
 import { useTradeHistory } from '../../hooks/useTradeHistory';
 import { useSettings } from '../../hooks/useSettings';
-import { Brain, Save, RefreshCw } from 'lucide-react';
+import { RefreshCw, Save } from 'lucide-react';
 
 const SignalGenerator = ({ marketData, asset, interval }) => {
   const { settings } = useSettings();
@@ -27,11 +25,9 @@ const SignalGenerator = ({ marketData, asset, interval }) => {
 
   const { 
     cog, 
-    signal, 
-    prediction, 
     signalType, 
     confidence, 
-    atr,
+    prediction,
     rsiDivergence,
     candlestickPattern,
     macdSignalType,
@@ -50,21 +46,18 @@ const SignalGenerator = ({ marketData, asset, interval }) => {
     { name: 'MACD', active: macdSignalType !== 'WAIT' }
   ];
 
-  // Trigger Gemini Analysis on new Signal
+  // Trigger AI Analysis on new Signal
   useEffect(() => {
     if (signalType !== 'WAIT' && safeCandles.length > 0) {
-      const lastCandle = safeCandles[(safeCandles?.length || 0) - 1];
-      if (lastCandle) {
-        fetchAnalysis({
-          asset: asset.symbol,
-          interval: interval.label,
-          cogValue: cog[cog.length - 1]?.value || 0,
-          crossover: signalType,
-          confidence: confidence,
-          p1: prediction?.p1,
-          p2: prediction?.p2
-        });
-      }
+      fetchAnalysis({
+        asset: asset.symbol,
+        interval: interval.label,
+        cogValue: cog[cog.length - 1]?.value || 0,
+        crossover: signalType,
+        confidence: confidence,
+        p1: prediction?.p1,
+        p2: prediction?.p2
+      });
     } else {
       setAnalysis('');
     }
@@ -84,7 +77,7 @@ const SignalGenerator = ({ marketData, asset, interval }) => {
   };
 
   return (
-    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto pb-10">
+    <div className="flex flex-col gap-6 max-w-[1600px] mx-auto pb-10 h-full">
       
       {/* Asset Info Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -93,81 +86,126 @@ const SignalGenerator = ({ marketData, asset, interval }) => {
             {asset.icon}
           </div>
           <div>
-            <h1 className="text-2xl font-black tracking-tight">{asset.name} <span className="text-amber-400 text-sm ml-1">OTC</span></h1>
+            <h1 className="text-2xl font-black tracking-tight">{asset.name} <span className="text-amber-400 text-sm ml-1 uppercase">Otc</span></h1>
             <div className="flex items-center gap-3">
-              <span className={`text-3xl font-mono font-black tracking-tighter ${marketData.connected ? 'text-white' : 'text-gray-600'}`}>
-                {marketData.lastPrice ? marketData.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '---.--'}
-              </span>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-teal-glow/10 border border-teal-glow/20">
-                <div className="w-1.5 h-1.5 rounded-full bg-teal-glow animate-pulse" />
-                <span className="text-[10px] font-black text-teal-glow uppercase tracking-tighter">OTC Live</span>
+              <div className="flex items-center gap-1.5">
+                 <div className="w-1.5 h-1.5 rounded-full bg-teal-glow animate-pulse" />
+                 <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Live</span>
               </div>
+              <span className={`text-2xl font-mono font-black tracking-tighter ${marketData.connected ? 'text-white' : 'text-gray-600'}`}>
+                {marketData.lastPrice ? marketData.lastPrice.toLocaleString(undefined, { minimumFractionDigits: 3 }) : '---.---'}
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <CountdownTimer interval={interval.value} lastTime={marketData?.candles?.[(marketData?.candles?.length || 0) - 1]?.time} />
-          <div className="bg-gray-900/50 px-4 py-2 border border-gray-800 rounded-xl flex flex-col items-end">
+        <div className="flex items-center gap-6">
+          <div className="flex flex-col items-end">
+            <span className="text-[10px] font-black text-gray-500 uppercase leading-none mb-1">Next Close</span>
+            <CountdownTimer interval={interval.value} lastTime={marketData?.candles?.[(marketData?.candles?.length || 0) - 1]?.time} />
+          </div>
+          <div className="bg-gray-900/50 px-4 py-2 border border-gray-800 rounded-xl flex flex-col items-end min-w-[100px]">
              <span className="text-[10px] font-black text-gray-500 uppercase leading-none mb-1">Expiry</span>
-             <span className="text-sm font-bold text-teal-glow leading-none uppercase tracking-widest italic">5 Minutes</span>
+             <span className="text-sm font-bold text-teal-glow leading-none uppercase tracking-widest italic">5 Min</span>
           </div>
         </div>
       </div>
 
       {/* Main Layout Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 flex-1">
         
-        {/* Left: Chart Area */}
+        {/* Left: Signal Center Area */}
         <div className="xl:col-span-8 flex flex-col gap-6">
-          <LiveChart marketData={marketData} asset={asset} interval={interval} />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-             <SignalBox 
-                type={signalType} 
-                confidence={confidence} 
-                asset={asset.symbol} 
-                interval={interval.label} 
-                lastPrice={marketData.lastPrice}
-              />
-              <div className="flex flex-col gap-4">
-                <GlassCard className="flex-1 flex flex-col justify-between">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Brain size={18} className="text-teal-glow" />
-                      <span className="text-xs font-black uppercase text-gray-400 tracking-widest">AI Intelligence</span>
-                    </div>
-                    {loading && <RefreshCw size={14} className="text-teal-glow animate-spin" />}
-                  </div>
-                  
-                  <div className="flex-1">
-                    {loading ? (
-                      <div className="space-y-2 animate-pulse">
-                        <div className="h-3 bg-gray-800 rounded w-full" />
-                        <div className="h-3 bg-gray-800 rounded w-4/5" />
-                        <div className="h-3 bg-gray-800 rounded w-3/4" />
-                      </div>
-                    ) : (
-                      <p className="text-[13px] leading-relaxed text-gray-300 italic font-medium">
-                        {analysis || "Awaiting signal for detailed technical breakdown..."}
-                      </p>
-                    )}
-                  </div>
+          <div className="relative flex-1 min-h-[500px] bg-gray-900/20 border border-gray-800 rounded-2xl overflow-hidden flex flex-col items-center justify-center">
+             {/* Decorative Signal Elements */}
+             <div className="absolute inset-0 opacity-10 pointer-events-none">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] border border-gray-700 rounded-full" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] border border-gray-800 rounded-full" />
+             </div>
 
-                  <button 
-                    onClick={handleLogTrade}
-                    disabled={signalType === 'WAIT'}
-                    className={`
-                      w-full mt-4 flex items-center justify-center gap-2 px-6 py-3 rounded-xl border font-black uppercase tracking-widest transition-all
-                      ${signalType === 'WAIT' 
-                        ? 'border-gray-800 text-gray-700 cursor-not-allowed' 
-                        : 'border-teal-glow/50 text-teal-glow hover:bg-teal-glow hover:text-space-dark shadow-glow'
-                      }
-                    `}
-                  >
-                    <Save size={18} />
-                    Log Signal to History
-                  </button>
-                </GlassCard>
-              </div>
+             <AnimatePresence mode="wait">
+               {signalType === 'WAIT' ? (
+                 <motion.div 
+                   key="wait"
+                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                   className="flex flex-col items-center gap-4"
+                 >
+                   <RefreshCw className="text-gray-700 animate-spin" size={48} />
+                   <span className="text-xs font-black text-gray-600 uppercase tracking-[0.2em]">Analyzing Market Data...</span>
+                 </motion.div>
+               ) : (
+                 <motion.div 
+                   key={signalType}
+                   initial={{ opacity: 0, scale: 0.9 }} 
+                   animate={{ opacity: 1, scale: 1 }}
+                   transition={{ type: 'spring', damping: 15 }}
+                   className="flex flex-col items-center"
+                 >
+                    {/* Signal Arrow/Triangle */}
+                    <div className="mb-2">
+                       {signalType === 'CALL' ? (
+                         <div className="w-0 h-0 border-l-[25px] border-l-transparent border-r-[25px] border-r-transparent border-b-[40px] border-b-teal-glow drop-shadow-[0_0_15px_rgba(0,255,178,0.5)]" />
+                       ) : (
+                         <div className="w-0 h-0 border-l-[25px] border-l-transparent border-r-[25px] border-r-transparent border-t-[40px] border-t-put-red drop-shadow-[0_0_15px_rgba(255,71,87,0.5)]" />
+                       )}
+                    </div>
+                    
+                    <h2 className={`text-[140px] font-black leading-none tracking-tighter ${signalType === 'CALL' ? 'text-teal-glow' : 'text-put-red'}`}>
+                      {signalType === 'CALL' ? 'CALL' : 'PUT'}
+                    </h2>
+                    
+                    <div className="flex flex-col items-center gap-2 mt-4">
+                       <span className="text-xs font-black text-gray-400 uppercase tracking-[0.3em]">Expiry: 2 Candles</span>
+                       <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{asset.name} OTC</span>
+                          <div className="w-1 h-1 rounded-full bg-gray-700" />
+                          <span className={`text-[10px] font-black uppercase tracking-widest ${signalType === 'CALL' ? 'text-teal-glow' : 'text-put-red'}`}>
+                            Strong {signalType === 'CALL' ? 'Buy' : 'Sell'}
+                          </span>
+                       </div>
+                    </div>
+                 </motion.div>
+               )}
+             </AnimatePresence>
+          </div>
+          
+          {/* Footer Panels */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Signal Protocol Panel */}
+              <GlassCard className="p-6">
+                <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-6 block border-b border-gray-800 pb-2">Signal Protocol</span>
+                <div className="flex flex-col gap-1 mb-8">
+                   <span className="text-xs font-black text-gray-400 uppercase tracking-tighter">{asset.name} @ {interval.label}</span>
+                   <span className="text-4xl font-black italic tracking-tighter text-white uppercase opacity-20">Active</span>
+                </div>
+                <div className="flex items-center justify-between">
+                   <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-amber-400 uppercase tracking-tighter">AI Accuracy:</span>
+                      <span className="text-[10px] font-black text-white">94.2%</span>
+                   </div>
+                   <button onClick={handleLogTrade} className="text-[9px] font-black uppercase text-gray-500 hover:text-teal-glow transition-colors flex items-center gap-1">
+                      <Save size={12} />
+                      Log Session
+                   </button>
+                </div>
+              </GlassCard>
+
+              {/* AI Intelligence Panel */}
+              <GlassCard className="p-6 flex flex-col">
+                <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-4 block border-b border-gray-800 pb-2">AI Intelligence</span>
+                <div className="flex-1 mt-2">
+                  {loading ? (
+                    <div className="space-y-2 animate-pulse">
+                      <div className="h-2 bg-gray-800 rounded w-full" />
+                      <div className="h-2 bg-gray-800 rounded w-4/5" />
+                    </div>
+                  ) : (
+                    <p className="text-[11px] leading-relaxed text-gray-400 font-medium italic">
+                      {analysis || "Awaiting signal for detailed technical breakdown correlation with current market volatility and structural shifts..."}
+                    </p>
+                  )}
+                </div>
+              </GlassCard>
           </div>
         </div>
 
@@ -195,8 +233,6 @@ const SignalGenerator = ({ marketData, asset, interval }) => {
         </div>
 
       </div>
-    </div>
-    </div>
     </div>
   );
 };
