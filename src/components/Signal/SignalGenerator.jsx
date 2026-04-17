@@ -211,11 +211,28 @@ const SignalGenerator = ({ marketData, asset, interval }) => {
 
         {/* Right: Sidebar Stats */}
         <div className="xl:col-span-4 flex flex-col gap-6">
-          <GlassCard className="flex flex-col items-center py-8">
-            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-8 self-start px-2">Signal Confidence</h3>
-            <ConfidenceGauge value={confidence} indicators={indicatorStates} />
+          {/* Confidence Panel */}
+          <GlassCard className="p-6">
+            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-8">Signal Confidence</h3>
+            <ConfidenceGauge value={confidence} />
           </GlassCard>
 
+          {/* Indicators Panel */}
+          <GlassCard className="p-6">
+            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-6">Indicators</h3>
+            <div className="grid grid-cols-2 gap-y-4 gap-x-8">
+              {indicatorStates.map((ind) => (
+                <div key={ind.name} className="flex items-center gap-2">
+                  <div className={`w-1.5 h-1.5 rounded-sm ${ind.active ? 'bg-teal-glow shadow-glow' : 'bg-gray-800'}`} />
+                  <span className={`text-[10px] font-black uppercase tracking-widest ${ind.active ? 'text-teal-glow' : 'text-gray-600'}`}>
+                    {ind.name}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </GlassCard>
+
+          {/* Future Forecast Panel */}
           <FuturePredictionPanel prediction={prediction} />
           
           <GlassCard className="p-0 overflow-hidden">

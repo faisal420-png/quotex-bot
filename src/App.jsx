@@ -40,13 +40,6 @@ const App = () => {
     setInterval(val);
   };
 
-  const tabs = {
-    signals: <SignalGenerator marketData={marketData} asset={currentAsset} interval={interval} />,
-    backtest: <Backtester asset={currentAsset} interval={interval} />,
-    history: <TradeHistory />,
-    settings: <Settings />
-  };
-
   return (
     <div className="flex h-screen bg-space-dark text-gray-100 overflow-hidden">
       {/* Sidebar - Collapsible on Desktop/Mobile */}
@@ -77,10 +70,17 @@ const App = () => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
               className="h-full"
             >
-              {tabs[activeTab]}
+              {activeTab === 'signals' && (
+                <SignalGenerator marketData={marketData} asset={currentAsset} interval={interval} />
+              )}
+              {activeTab === 'backtest' && (
+                <Backtester asset={currentAsset} interval={interval} />
+              )}
+              {activeTab === 'history' && <TradeHistory />}
+              {activeTab === 'settings' && <Settings />}
             </motion.div>
           </AnimatePresence>
         </main>
